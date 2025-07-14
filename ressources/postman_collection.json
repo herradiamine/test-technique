@@ -12,7 +12,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"joueurs\": [\n    {\"nom\": \"Alice\", \"paires\": 6},\n    {\"nom\": \"Bob\", \"paires\": 2}\n  ],\n  \"score_total\": 18,\n  \"vainqueur\": \"Alice\",\n  \"taille_grille\": \"4x4\",\n  \"theme\": \"icônes\",\n  \"nb_joueurs\": 2\n}"
+          "raw": "{\n  \"joueurs\": [\n    {\"nom\": \"Alice\", \"paires\": 6},\n    {\"nom\": \"Bob\", \"paires\": 2}\n  ],\n  \"score_total\": 18,\n  \"vainqueur\": \"Alice\",\n  \"taille_grille\": \"grille_4x4\",\n  \"theme\": \"nombres\",\n  \"nb_joueurs\": 2\n}"
         },
         "url": { "raw": "http://localhost:8000/scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["scores"] }
       }
@@ -22,6 +22,27 @@
       "request": {
         "method": "GET",
         "url": { "raw": "http://localhost:8000/scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["scores"] }
+      }
+    },
+    {
+      "name": "Top 10 des scores",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/top10", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["top10"] }
+      }
+    },
+    {
+      "name": "Statistiques globales",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/stats", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["stats"] }
+      }
+    },
+    {
+      "name": "Thèmes disponibles",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/themes", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["themes"] }
       }
     },
     {
@@ -43,7 +64,7 @@
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"taille_grille\": \"4x4\",\n  \"theme\": \"icônes\",\n  \"nb_joueurs\": 2,\n  \"vainqueur_id\": 1\n}"
+          "raw": "{\n  \"taille_grille\": \"grille_4x4\",\n  \"theme\": \"nombres\",\n  \"nb_joueurs\": 2,\n  \"vainqueur_id\": 1\n}"
         },
         "url": { "raw": "http://localhost:8000/parties", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["parties"] }
       }
