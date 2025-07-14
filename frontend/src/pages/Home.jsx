@@ -63,6 +63,9 @@ function Home() {
           <button className={`radio-btn${theme === 'emojis' ? ' selected' : ''}`} onClick={() => setTheme('emojis')} type="button">
             <span className="icon">😀</span> Emojis
           </button>
+          <button className={`radio-btn${theme === 'chiffres' ? ' selected' : ''}`} onClick={() => setTheme('chiffres')} type="button">
+            <span className="icon">#</span> Chiffres
+          </button>
         </div>
       </div>
 

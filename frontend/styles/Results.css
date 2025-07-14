@@ -294,6 +294,19 @@
   box-shadow: none !important;
 }
 
+.badge-winner {
+  display: inline-block;
+  margin-left: 8px;
+  background: #ffc107;
+  color: #fff;
+  border-radius: 50%;
+  padding: 4px 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  vertical-align: middle;
+  box-shadow: 0 2px 8px rgba(255,193,7,0.15);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .results-container {

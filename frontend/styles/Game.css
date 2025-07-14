@@ -81,14 +81,21 @@
 
 /* Cartes */
 .card {
-  aspect-ratio: 1;
+  aspect-ratio: 1/1;
   perspective: 1000px;
   cursor: pointer;
   transition: transform 0.3s ease;
+  overflow: hidden;
 }
 
 .card:hover {
   transform: scale(1.05);
+}
+
+.card:focus {
+  outline: 3px solid #ffb400;
+  outline-offset: 2px;
+  z-index: 2;
 }
 
 .card-inner {
@@ -100,6 +107,9 @@
   transform-style: preserve-3d;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .card.flipped .card-inner {
@@ -119,6 +129,9 @@
   font-weight: bold;
   border-radius: 12px;
   user-select: none;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1;
 }
 
 .card-front {
@@ -131,6 +144,33 @@
   background: white;
   color: #333;
   transform: rotateY(180deg);
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  word-break: break-word;
+  padding: 0 4px;
+  max-width: 100%;
+  max-height: 100%;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ajustement spécial pour les chiffres */
+.card-back.chiffre {
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+  max-width: 90%;
+  max-height: 90%;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Grille 6x6 : réduire la taille des chiffres */
+.grid-size-6 .card-back.chiffre {
+  font-size: 0.9rem;
 }
 
 .card.matched .card-back {
@@ -319,6 +359,10 @@
   .btn {
     width: 100%;
     padding: 15px;
+  }
+
+  .card-back.chiffre {
+    font-size: 1rem;
   }
 }
 

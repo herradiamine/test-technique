@@ -11,10 +11,12 @@ function Top10() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all'); // all, solo, multiplayer
   const [sortBy, setSortBy] = useState('score'); // score, time, date
+  const mainBtnRef = React.useRef(null);
 
   useEffect(() => {
     loadTop10();
     loadStats();
+    setTimeout(() => { mainBtnRef.current?.focus(); }, 200);
   }, [filter, sortBy]);
 
   const loadTop10 = async () => {
@@ -107,13 +109,13 @@ function Top10() {
 
   return (
     <div className="top10-container">
-      <div className="top10-header">
-        <h1>🏆 Classement Top 10</h1>
+      <div className="top10-header" role="region" aria-labelledby="top10-title">
+        <h1 id="top10-title">🏆 Classement Top 10</h1>
         <div className="header-actions">
-          <button onClick={handleRefresh} className="btn btn-secondary">
+          <button onClick={handleRefresh} className="btn btn-secondary" aria-label="Actualiser le classement">
             🔄 Actualiser
           </button>
-          <button onClick={handleNewGame} className="btn btn-primary">
+          <button ref={mainBtnRef} onClick={handleNewGame} className="btn btn-primary" aria-label="Nouvelle Partie">
             Nouvelle Partie
           </button>
         </div>
@@ -145,13 +147,15 @@ function Top10() {
       )}
 
       {/* Filtres et tri */}
-      <div className="filters-section">
+      <div className="filters-section" role="region" aria-label="Filtres du classement">
         <div className="filter-group">
-          <label>Filtrer par :</label>
+          <label htmlFor="filter-select">Filtrer par :</label>
           <select 
+            id="filter-select"
             value={filter} 
             onChange={(e) => setFilter(e.target.value)}
             className="filter-select"
+            aria-label="Filtrer le classement"
           >
             <option value="all">Toutes les parties</option>
             <option value="solo">Solo uniquement</option>
@@ -159,11 +163,13 @@ function Top10() {
           </select>
         </div>
         <div className="filter-group">
-          <label>Trier par :</label>
+          <label htmlFor="sort-select">Trier par :</label>
           <select 
+            id="sort-select"
             value={sortBy} 
             onChange={(e) => setSortBy(e.target.value)}
             className="filter-select"
+            aria-label="Trier le classement"
           >
             <option value="score">Score (décroissant)</option>
             <option value="time">Temps (croissant)</option>
@@ -173,11 +179,11 @@ function Top10() {
       </div>
 
       {/* Classement */}
-      <div className="leaderboard-section">
+      <div className="leaderboard-section" role="region" aria-label="Tableau du classement">
         {error ? (
-          <div className="error-message">
+          <div className="error-message" role="alert" tabIndex={-1} style={{ color: '#dc3545', marginBottom: 10 }}>
             {error}
-            <button onClick={handleRefresh} className="btn btn-secondary">
+            <button onClick={handleRefresh} className="btn btn-secondary" aria-label="Réessayer le chargement du classement">
               Réessayer
             </button>
           </div>
@@ -190,33 +196,39 @@ function Top10() {
           </div>
         ) : (
           <div className="leaderboard">
-            {topScores.map((score, index) => (
-              <div key={score.id} className={`leaderboard-item rank-${index + 1}`}>
-                <div className="rank">
-                  {index === 0 && '🥇'}
-                  {index === 1 && '🥈'}
-                  {index === 2 && '🥉'}
-                  {index > 2 && `#${index + 1}`}
-                </div>
-                <div className="player-info">
-                  <div className="player-name">{score.player_name}</div>
-                  <div className="game-details">
-                    <span className="theme-icon">{getThemeIcon(score.theme)}</span>
-                    <span className="grid-size">{score.grid_size}x{score.grid_size}</span>
-                    <span className="player-count">
-                      {score.player_count === 1 ? 'Solo' : '2 Joueurs'}
-                    </span>
+            {topScores.map((score, index) => {
+              // Nom du joueur ou vainqueur
+              const playerNames = score.joueurs.map(j => j.nom).join(' & ');
+              const paires = score.joueurs.map(j => j.paires).join(' / ');
+              const isMulti = score.nb_joueurs > 1;
+              return (
+                <div key={score.id} className={`leaderboard-item rank-${index + 1}`}>
+                  <div className="rank">
+                    {index === 0 && '🥇'}
+                    {index === 1 && '🥈'}
+                    {index === 2 && '🥉'}
+                    {index > 2 && `#${index + 1}`}
+                  </div>
+                  <div className="player-info">
+                    <div className="player-name">{isMulti ? playerNames : playerNames || score.vainqueur}</div>
+                    <div className="game-details">
+                      <span className="theme-icon">{getThemeIcon(score.theme)}</span>
+                      <span className="grid-size">{score.taille_grille.replace('grille_', '').replace('_', 'x')}</span>
+                      <span className="player-count">
+                        {score.nb_joueurs === 1 ? 'Solo' : `${score.nb_joueurs} Joueurs`}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="score-info">
+                    <div className="score-value">{paires} paires</div>
+                    <div className="score-time">{score.score_total} coups</div>
+                  </div>
+                  <div className="score-date">
+                    {score.date_partie ? formatDate(score.date_partie) : '-'}
                   </div>
                 </div>
-                <div className="score-info">
-                  <div className="score-value">{score.score} paires</div>
-                  <div className="score-time">{formatTime(score.time_seconds)}</div>
-                </div>
-                <div className="score-date">
-                  {formatDate(score.created_at)}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

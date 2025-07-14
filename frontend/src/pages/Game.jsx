@@ -16,6 +16,8 @@ function Game() {
   const [gameTime, setGameTime] = useState(0);
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [moveCount, setMoveCount] = useState(0);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   // Paramètres du jeu
   const { theme = 'animaux', gridSize = 4, playerCount = 1 } = gameParams;
@@ -60,16 +62,18 @@ function Game() {
   const getCardValues = (theme, pairs) => {
     // Valeurs selon le thème (à étendre)
     const themes = {
-      animaux: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'],
-      fruits: ['🍎', '🍌', '🍇', '🍊', '🍓', '🍑', '🥝', '🥭'],
-      emojis: ['😀', '😍', '🤔', '😎', '🤗', '😴', '🤩', '😋']
+      animaux: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🦄', '🐙', '🦉', '🦋'],
+      fruits: ['🍎', '🍌', '🍇', '🍊', '🍓', '🍑', '🥝', '🥭', '🍍', '🍒', '🍉', '🍐', '🍈', '🍋', '🍏', '🥥', '🍅', '🍆'],
+      emojis: ['😀', '😍', '🤔', '😎', '🤗', '😴', '🤩', '😋', '😱', '😡', '😭', '😇', '😜', '😬', '😅', '😏', '😃', '😈']
     };
-    
+    if (theme === 'chiffres') {
+      return Array.from({ length: pairs }, (_, i) => (i + 1).toString());
+    }
     return themes[theme]?.slice(0, pairs) || themes.animaux.slice(0, pairs);
   };
 
   const handleCardClick = (cardId) => {
-    if (flippedCards.length === 2 || cards[cardId].isMatched || cards[cardId].isFlipped) {
+    if (isBlocked || flippedCards.length === 2 || cards[cardId].isMatched || cards[cardId].isFlipped) {
       return;
     }
 
@@ -83,8 +87,11 @@ function Game() {
 
     // Vérifier si on a une paire
     if (newFlippedCards.length === 2) {
+      setIsBlocked(true);
+      setMoveCount(prev => prev + 1);
       setTimeout(() => {
         checkForMatch(newFlippedCards);
+        setIsBlocked(false);
       }, 1000);
     }
   };
@@ -133,6 +140,17 @@ function Game() {
     navigate('/');
   };
 
+  // Gestion du focus clavier
+  const cardRefs = React.useRef([]);
+
+  // Activation clavier (Entrée/Espace)
+  const handleCardKeyDown = (e, cardId) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCardClick(cardId);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="game-container">
@@ -149,6 +167,7 @@ function Game() {
           <h1>Jeu de Mémoire</h1>
           <div className="game-stats">
             <span>Temps: {Math.floor(gameTime / 60)}:{(gameTime % 60).toString().padStart(2, '0')}</span>
+            <span>Coups: {moveCount}</span>
             {playerCount === 1 ? (
               <span>Score: {scores[1]}</span>
             ) : (
@@ -166,16 +185,28 @@ function Game() {
       </div>
 
       {/* Grille de cartes */}
-      <div className={`game-grid grid-size-${gridSize}`}>
-        {cards.map(card => (
+      <div
+        className={`game-grid grid-size-${gridSize}`}
+        role="grid"
+        aria-label="Grille de jeu de mémoire"
+      >
+        {cards.map((card, idx) => (
           <div
             key={card.id}
             className={`card ${card.isFlipped ? 'flipped' : ''} ${card.isMatched ? 'matched' : ''}`}
             onClick={() => handleCardClick(card.id)}
+            tabIndex={card.isMatched ? -1 : 0}
+            ref={el => cardRefs.current[idx] = el}
+            onKeyDown={e => handleCardKeyDown(e, card.id)}
+            role="gridcell"
+            aria-label={card.isMatched ? `Carte trouvée` : card.isFlipped ? `Carte retournée` : `Carte face cachée`}
+            aria-pressed={card.isFlipped}
+            aria-disabled={card.isMatched}
+            style={{ outline: card.isMatched ? 'none' : undefined }}
           >
             <div className="card-inner">
               <div className="card-front">?</div>
-              <div className="card-back">{card.value}</div>
+              <div className={`card-back${theme === 'chiffres' ? ' chiffre' : ''}`}>{card.value}</div>
             </div>
           </div>
         ))}
@@ -188,6 +219,7 @@ function Game() {
             <h2>Partie terminée !</h2>
             <div className="final-stats">
               <p>Temps total: {Math.floor(gameTime / 60)}:{(gameTime % 60).toString().padStart(2, '0')}</p>
+              <p>Nombre de coups: {moveCount}</p>
               {playerCount === 1 ? (
                 <p>Score final: {scores[1]}</p>
               ) : (
