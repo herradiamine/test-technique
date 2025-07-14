@@ -1,0 +1,112 @@
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background: linear-gradient(135deg, #f7faff 0%, #f7f7fa 100%);
+  min-height: 100vh;
+}
+
+.home-container {
+  max-width: 480px;
+  margin: 3.5rem auto 0 auto;
+  padding: 2.5rem 2rem 2rem 2rem;
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.home-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1.2rem;
+}
+.home-title {
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+.home-subtitle {
+  color: #888;
+  font-size: 1.08rem;
+  text-align: center;
+  margin-bottom: 2.2rem;
+}
+.home-section {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+.home-section-title {
+  font-size: 1.08rem;
+  font-weight: 500;
+  margin-bottom: 0.7rem;
+  color: #222;
+}
+.options-row {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+.radio-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: 1rem;
+  border: 2px solid #e5e7eb;
+  background: #f7f7fa;
+  color: #222;
+  font-weight: 500;
+  font-size: 1.08rem;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+.radio-btn.selected {
+  border: 2px solid #ffb400;
+  background: #fff7e0;
+  color: #ffb400;
+}
+.radio-btn .icon {
+  font-size: 1.2em;
+}
+.home-actions {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 2.2rem;
+}
+.start-game-btn {
+  flex: 2;
+  padding: 1rem 0;
+  border-radius: 1rem;
+  border: none;
+  background: #ffb400;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.start-game-btn:disabled {
+  background: #e5e7eb;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.top10-btn {
+  flex: 1;
+  padding: 1rem 0;
+  border-radius: 1rem;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #222;
+  font-size: 1.08rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+.top10-btn:hover {
+  border: 2px solid #ffb400;
+  color: #ffb400;
+} 

@@ -1,15 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import '/styles/Layout.css';
 
 function Layout({ children }) {
+  const location = useLocation();
   return (
     <div>
-      <nav className="p-4 bg-gray-100 flex gap-4">
-        <Link to="/">Accueil</Link>
-        <Link to="/game">Jeu</Link>
-        <Link to="/results">Résultats</Link>
-        <Link to="/top10">Top 10</Link>
+      <nav className="menu-bar">
+        <Link to="/" className={`menu-link${location.pathname === '/' ? ' active' : ''}`}>Accueil</Link>
+        <Link to="/game" className={`menu-link${location.pathname === '/game' ? ' active' : ''}`}>Jeu</Link>
+        <Link to="/results" className={`menu-link${location.pathname === '/results' ? ' active' : ''}`}>Résultats</Link>
+        <Link to="/top10" className={`menu-link${location.pathname === '/top10' ? ' active' : ''}`}>Top 10</Link>
       </nav>
-      <main className="p-4">{children}</main>
+      <main>{children}</main>
     </div>
   );
 }

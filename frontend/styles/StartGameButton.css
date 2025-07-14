@@ -1,0 +1,19 @@
+/* Styles pour StartGameButton */
+.start-game-btn {
+  width: 100%;
+  padding: 1rem 0;
+  border-radius: 9999px;
+  border: none;
+  background: #ffb400;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 2rem;
+  transition: background 0.2s;
+}
+.start-game-btn:disabled {
+  background: #e5e7eb;
+  color: #aaa;
+  cursor: not-allowed;
+} 

@@ -1,0 +1,21 @@
+/* Styles pour ThemeSelector */
+.theme-selector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.theme-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: #e5e7eb;
+  color: #222;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.theme-btn.selected {
+  background: #ffb400;
+  color: #fff;
+} 
