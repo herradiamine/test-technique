@@ -17,7 +17,7 @@ function Top10() {
     loadTop10();
     loadStats();
     setTimeout(() => { mainBtnRef.current?.focus(); }, 200);
-  }, [filter, sortBy]);
+  }, [filter, sortBy, loadTop10, loadStats]);
 
   const loadTop10 = async () => {
     setIsLoading(true);
