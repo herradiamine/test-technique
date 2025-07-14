@@ -33,6 +33,17 @@ function Game() {
   const [resumeData, setResumeData] = useState(null);
   const hasRestored = useRef(false);
 
+  // Déclaration de la fonction d'initialisation du jeu (doit être avant le useEffect)
+  const initializeGame = () => {
+    setIsLoading(true);
+    // Logique d'initialisation des cartes selon le thème et la taille
+    const cardCount = gridSize * gridSize;
+    const pairs = cardCount / 2;
+    const gameCards = generateCards(pairs, theme);
+    setCards(gameCards);
+    setIsLoading(false);
+  };
+
   // Initialisation du jeu
   useEffect(() => {
     initializeGame();
@@ -41,19 +52,7 @@ function Game() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [initializeGame]);
-
-  const initializeGame = () => {
-    setIsLoading(true);
-    // Logique d'initialisation des cartes selon le thème et la taille
-    const cardCount = gridSize * gridSize;
-    const pairs = cardCount / 2;
-    
-    // Générer les cartes (à implémenter selon le thème)
-    const gameCards = generateCards(pairs, theme);
-    setCards(gameCards);
-    setIsLoading(false);
-  };
+  }, []); // <--- tableau vide pour éviter la boucle infinie
 
   const generateCards = (pairs, theme) => {
     // Logique de génération des cartes selon le thème
