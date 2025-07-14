@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from enum import Enum
 
 # --- Enums pour validation stricte ---
@@ -31,8 +31,7 @@ class ScoreCreate(ScoreBase):
 
 class ScoreRead(ScoreBase):
     id: int
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Version normalisée ---
 class JoueurBase(BaseModel):
@@ -43,8 +42,7 @@ class JoueurCreate(JoueurBase):
 
 class JoueurRead(JoueurBase):
     id: int
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class PartieBase(BaseModel):
     taille_grille: TailleGrilleEnum
@@ -58,8 +56,7 @@ class PartieCreate(PartieBase):
 
 class PartieRead(PartieBase):
     id: int
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ScoreJoueurBase(BaseModel):
     score_id: Optional[int] = None  # NOUVEAU
@@ -72,5 +69,4 @@ class ScoreJoueurCreate(ScoreJoueurBase):
 
 class ScoreJoueurRead(ScoreJoueurBase):
     id: int
-    class Config:
-        orm_mode = True 
+    model_config = ConfigDict(from_attributes=True) 
