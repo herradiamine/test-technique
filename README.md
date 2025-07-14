@@ -1,3 +1,5 @@
+[![CI/CD](https://github.com/${{ github.repository }}/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/${{ github.repository }}/actions)
+
 # Jeu de Mémoire – Test Technique Clic Campus
 
 Ce projet est une application fullstack de jeu de mémoire (Memory) développée pour un test technique. Il est composé d’un frontend React (Vite, TailwindCSS) et d’un backend FastAPI (Python, SQLAlchemy, Pydantic) orchestrés avec Docker et Docker Compose.
