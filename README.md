@@ -2,7 +2,7 @@
 
 Ce projet est structuré en deux parties principales :
 
-- `/frontend` : Application Next.js (React, TypeScript, TailwindCSS)
+- `/frontend` : Application (React, TypeScript, TailwindCSS)
 - `/backend` : API FastAPI (Python, Pydantic, SQL)
 
 ## Lancement rapide
@@ -12,6 +12,6 @@ Voir les instructions dans chaque dossier et le fichier `docker-compose.yml` (à
 ---
 
 ## Technologies principales
-- **Frontend** : Next.js, TypeScript, TailwindCSS
+- **Frontend** : React, Vite, TypeScript, TailwindCSS
 - **Backend** : FastAPI, Python 3.12+, Pydantic, SQL (Postgres ou SQLite)
 - **Orchestration** : Docker, Docker Compose 

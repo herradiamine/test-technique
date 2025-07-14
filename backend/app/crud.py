@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-from typing import List
+from typing import List, Optional
+from sqlalchemy import func
 
 # --- Version simple ---
 def create_score(db: Session, score: schemas.ScoreCreate):
@@ -12,6 +13,16 @@ def create_score(db: Session, score: schemas.ScoreCreate):
 
 def get_scores(db: Session, skip: int = 0, limit: int = 10) -> List[models.Score]:
     return db.query(models.Score).offset(skip).limit(limit).all()
+
+# Top 10 des scores (par score_total croissant = meilleur score)
+def get_top10_scores(db: Session) -> List[models.Score]:
+    return db.query(models.Score).order_by(models.Score.score_total.asc()).limit(10).all()
+
+# Statistiques globales (score moyen, nombre de participations)
+def get_stats(db: Session) -> dict:
+    score_moyen = db.query(func.avg(models.Score.score_total)).scalar() or 0
+    nb_participations = db.query(func.count(models.Score.id)).scalar() or 0
+    return {"score_moyen": float(score_moyen), "nombre_participations": nb_participations}
 
 # --- Version normalisée ---
 def create_joueur(db: Session, joueur: schemas.JoueurCreate):

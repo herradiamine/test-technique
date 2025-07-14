@@ -21,6 +21,19 @@ def create_score(score: schemas.ScoreCreate, db: Session = Depends(get_db)):
 def read_scores(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_scores(db, skip=skip, limit=limit)
 
+@router.get("/top10", response_model=List[schemas.ScoreRead])
+def get_top10(db: Session = Depends(get_db)):
+    return crud.get_top10_scores(db)
+
+@router.get("/stats")
+def get_stats(db: Session = Depends(get_db)):
+    return crud.get_stats(db)
+
+@router.get("/themes")
+def get_themes():
+    """Retourne la liste des thèmes disponibles pour le jeu."""
+    return ["nombres", "icônes"]
+
 # --- Version normalisée (exemples) ---
 @router.post("/joueurs", response_model=schemas.JoueurRead)
 def create_joueur(joueur: schemas.JoueurCreate, db: Session = Depends(get_db)):
