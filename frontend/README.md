@@ -15,13 +15,6 @@ Le badge ci-dessus indique si les tests frontend passent dans la CI (GitHub Acti
 - Résultats détaillés, classement Top 10, statistiques globales
 - Responsive et design fidèle à la maquette
 
-## Tests & Intégration Continue
-- Les tests frontend sont lancés automatiquement dans la CI (voir badge en haut).
-- Pour lancer les tests manuellement :
-  ```bash
-  npm test
-  ```
-
 ## Workflow d’enregistrement (relationnel)
 1. Saisie des noms des joueurs
 2. Recherche/création des joueurs via l’API
