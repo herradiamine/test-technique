@@ -1,6 +1,12 @@
+[![CI/CD](https://github.com/amineherradi/test-technique/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/amineherradi/test-technique/actions)
+
 # Frontend – Jeu de Mémoire
 
 Ce dossier contient l'application frontend développée avec React, Vite, TailwindCSS.
+
+## Statut des tests
+
+Le badge ci-dessus indique si les tests frontend passent dans la CI (GitHub Actions).
 
 ## Fonctionnalités principales
 - Sélection des paramètres (taille de la grille, thème, nombre de joueurs)
@@ -8,6 +14,13 @@ Ce dossier contient l'application frontend développée avec React, Vite, Tailwi
 - Compteur de coups individuel, timer, accessibilité clavier et ARIA
 - Résultats détaillés, classement Top 10, statistiques globales
 - Responsive et design fidèle à la maquette
+
+## Tests & Intégration Continue
+- Les tests frontend sont lancés automatiquement dans la CI (voir badge en haut).
+- Pour lancer les tests manuellement :
+  ```bash
+  npm test
+  ```
 
 ## Workflow d’enregistrement (relationnel)
 1. Saisie des noms des joueurs
