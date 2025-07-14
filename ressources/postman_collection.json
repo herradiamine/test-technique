@@ -1,0 +1,59 @@
+{
+  "info": {
+    "name": "Jeu de Mémoire API",
+    "description": "Collection Postman pour tester l'API FastAPI du jeu de mémoire.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Créer un score (version simple)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"joueurs\": [\n    {\"nom\": \"Alice\", \"paires\": 6},\n    {\"nom\": \"Bob\", \"paires\": 2}\n  ],\n  \"score_total\": 18,\n  \"vainqueur\": \"Alice\",\n  \"taille_grille\": \"4x4\",\n  \"theme\": \"icônes\",\n  \"nb_joueurs\": 2\n}"
+        },
+        "url": { "raw": "http://localhost:8000/scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["scores"] }
+      }
+    },
+    {
+      "name": "Lister les scores (version simple)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["scores"] }
+      }
+    },
+    {
+      "name": "Créer un joueur (version normalisée)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nom\": \"Alice\"\n}"
+        },
+        "url": { "raw": "http://localhost:8000/joueurs", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["joueurs"] }
+      }
+    },
+    {
+      "name": "Créer une partie (version normalisée)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"taille_grille\": \"4x4\",\n  \"theme\": \"icônes\",\n  \"nb_joueurs\": 2,\n  \"vainqueur_id\": 1\n}"
+        },
+        "url": { "raw": "http://localhost:8000/parties", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["parties"] }
+      }
+    },
+    {
+      "name": "Lister les parties (version normalisée)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/parties", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["parties"] }
+      }
+    }
+  ]
+} 
