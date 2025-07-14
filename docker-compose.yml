@@ -1,26 +1,25 @@
-version: '3.8'
 services:
-  frontend:
+  memory_frontend:
     build: ./frontend
     ports:
-      - "3000:3000"
+      - "4173:4173"
     depends_on:
-      - backend
+      - memory_backend
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - VITE_API_URL=http://backend:8000
     volumes:
       - ./frontend:/app
-  backend:
+  memory_backend:
     build: ./backend
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      - memory_db
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/memory
     volumes:
       - ./backend:/app
-  db:
+  memory_db:
     image: postgres:15
     restart: always
     environment:
