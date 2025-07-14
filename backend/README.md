@@ -1,155 +1,59 @@
 # Backend – Jeu de Mémoire
 
-Ce dossier contient l'API FastAPI (Python 3.12+, Pydantic, SQL).
+Ce dossier contient l'API FastAPI (Python 3.12+, Pydantic, SQL) pour le jeu de mémoire.
 
-## Spécifications fonctionnelles
+## Structure relationnelle
+- **joueur** : chaque joueur est unique (nom)
+- **partie** : une partie jouée (taille, thème, date, vainqueur)
+- **score** : score global de la partie (nombre de coups, etc.)
+- **score_joueur** : score individuel d’un joueur pour une partie
 
-- **Endpoints à implémenter :**
-  - `POST /scores` : enregistrer un score de partie (version simple)
-  - `GET /scores` : récupérer la liste des scores (version simple)
-  - `POST /joueurs` : créer un joueur (version normalisée)
-  - `POST /parties` : créer une partie (version normalisée)
-  - `GET /parties` : récupérer la liste des parties (version normalisée)
+## Endpoints principaux (REST)
+- `POST /joueurs` : créer/rechercher un joueur (`{ "nom": "Alice" }`)
+- `POST /parties` : créer une partie (`{ "taille_grille": "grille_4x4", "theme": "nombres", "nb_joueurs": 2, "vainqueur_id": 1 }`)
+- `POST /scores` : créer le score global (`{ "score_total": 18, "vainqueur": "Alice", ... }`)
+- `POST /score_joueur` : score individuel (`{ "score_id": 1, "partie_id": 1, "joueur_id": 1, "paires": 6 }`)
+- `GET /joueurs-scores` : scores individuels (jointure)
+- `GET /stats` : statistiques globales
+- `GET /top10` : top 10 des parties
+- `GET /themes` : thèmes disponibles
 
-## Documentation de l'API
+## Séquence d’enregistrement d’une partie
+1. Chercher/créer chaque joueur
+2. Créer la partie
+3. Créer le score global
+4. Créer les scores individuels (score_joueur)
 
-L'API est documentée automatiquement via Swagger/OpenAPI :
-- Accès : [http://localhost:8000/docs](http://localhost:8000/docs)
-
-### Endpoints principaux
-
-#### 1. Enregistrer un score (version simple)
-- **POST** `/scores`
-- **Body exemple :**
+## Exemples de payloads
 ```json
-{
-  "joueurs": [
-    {"nom": "Alice", "paires": 6},
-    {"nom": "Bob", "paires": 2}
-  ],
-  "score_total": 18,
-  "vainqueur": "Alice",
-  "taille_grille": "4x4",
-  "theme": "icônes",
-  "nb_joueurs": 2
-}
-```
-- **Réponse :**
-```json
-{
-  "id": 1,
-  "joueurs": [...],
-  "score_total": 18,
-  "vainqueur": "Alice",
-  "taille_grille": "4x4",
-  "theme": "icônes",
-  "nb_joueurs": 2,
-  "date_partie": "2024-07-14T10:00:00"
-}
-```
+POST /joueurs
+{ "nom": "Alice" }
 
-#### 2. Récupérer la liste des scores (version simple)
-- **GET** `/scores`
-- **Réponse :**
-```json
-[
-  {
-    "id": 1,
-    "joueurs": [...],
-    "score_total": 18,
-    "vainqueur": "Alice",
-    "taille_grille": "4x4",
-    "theme": "icônes",
-    "nb_joueurs": 2,
-    "date_partie": "2024-07-14T10:00:00"
-  },
-  ...
-]
-```
+POST /parties
+{ "taille_grille": "grille_4x4", "theme": "nombres", "nb_joueurs": 2, "vainqueur_id": 1 }
 
-#### 3. Créer un joueur (version normalisée)
-- **POST** `/joueurs`
-- **Body exemple :**
-```json
-{
-  "nom": "Alice"
-}
-```
-- **Réponse :**
-```json
-{
-  "id": 1,
-  "nom": "Alice"
-}
-```
+POST /scores
+{ "score_total": 18, "vainqueur": "Alice", "partie_id": 1 }
 
-#### 4. Créer une partie (version normalisée)
-- **POST** `/parties`
-- **Body exemple :**
-```json
-{
-  "taille_grille": "4x4",
-  "theme": "icônes",
-  "nb_joueurs": 2,
-  "vainqueur_id": 1
-}
+POST /score_joueur
+{ "score_id": 1, "partie_id": 1, "joueur_id": 1, "paires": 6 }
 ```
-- **Réponse :**
-```json
-{
-  "id": 1,
-  "taille_grille": "4x4",
-  "theme": "icônes",
-  "nb_joueurs": 2,
-  "date_partie": "2024-07-14T10:00:00",
-  "vainqueur_id": 1
-}
-```
-
-#### 5. Récupérer la liste des parties (version normalisée)
-- **GET** `/parties`
-- **Réponse :**
-```json
-[
-  {
-    "id": 1,
-    "taille_grille": "4x4",
-    "theme": "icônes",
-    "nb_joueurs": 2,
-    "date_partie": "2024-07-14T10:00:00",
-    "vainqueur_id": 1
-  },
-  ...
-]
-```
-
----
 
 ## Installation
-
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Lancement en développement
-
 ```bash
 uvicorn app.main:app --reload
 ```
 
----
+## Lancement avec Docker
+Voir le README principal et `docker-compose.yml`.
 
-## Structure du projet
-
-- `main.py` : point d'entrée FastAPI
-- `models.py` : modèles SQLAlchemy
-- `schemas.py` : schémas Pydantic
-- `crud.py` : logique métier (CRUD)
-- `database.py` : connexion DB
-- `routers.py` : endpoints FastAPI
+## Documentation API
+Swagger : http://localhost:8000/docs
 
 ---
-
-## Auteur
-
 Projet réalisé dans le cadre du test technique Clic Campus. 

@@ -1,52 +1,12 @@
 {
   "info": {
-    "name": "Jeu de Mémoire API",
-    "description": "Collection Postman pour tester l'API FastAPI du jeu de mémoire.",
+    "name": "Jeu de Mémoire API (Relationnel)",
+    "description": "Collection Postman pour tester l'API FastAPI du jeu de mémoire (version relationnelle, endpoints normalisés).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Créer un score (version simple)",
-      "request": {
-        "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"joueurs\": [\n    {\"nom\": \"Alice\", \"paires\": 6},\n    {\"nom\": \"Bob\", \"paires\": 2}\n  ],\n  \"score_total\": 18,\n  \"vainqueur\": \"Alice\",\n  \"taille_grille\": \"grille_4x4\",\n  \"theme\": \"nombres\",\n  \"nb_joueurs\": 2\n}"
-        },
-        "url": { "raw": "http://localhost:8000/scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["scores"] }
-      }
-    },
-    {
-      "name": "Lister les scores (version simple)",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "http://localhost:8000/scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["scores"] }
-      }
-    },
-    {
-      "name": "Top 10 des scores",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "http://localhost:8000/top10", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["top10"] }
-      }
-    },
-    {
-      "name": "Statistiques globales",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "http://localhost:8000/stats", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["stats"] }
-      }
-    },
-    {
-      "name": "Thèmes disponibles",
-      "request": {
-        "method": "GET",
-        "url": { "raw": "http://localhost:8000/themes", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["themes"] }
-      }
-    },
-    {
-      "name": "Créer un joueur (version normalisée)",
+      "name": "Créer un joueur",
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -58,7 +18,7 @@
       }
     },
     {
-      "name": "Créer une partie (version normalisée)",
+      "name": "Créer une partie",
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -70,10 +30,55 @@
       }
     },
     {
-      "name": "Lister les parties (version normalisée)",
+      "name": "Créer un score global",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score_total\": 18,\n  \"vainqueur\": \"Alice\",\n  \"partie_id\": 1\n}"
+        },
+        "url": { "raw": "http://localhost:8000/scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["scores"] }
+      }
+    },
+    {
+      "name": "Créer un score individuel",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score_id\": 1,\n  \"partie_id\": 1,\n  \"joueur_id\": 1,\n  \"paires\": 6\n}"
+        },
+        "url": { "raw": "http://localhost:8000/score_joueur", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["score_joueur"] }
+      }
+    },
+    {
+      "name": "Lister les scores individuels",
       "request": {
         "method": "GET",
-        "url": { "raw": "http://localhost:8000/parties", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["parties"] }
+        "url": { "raw": "http://localhost:8000/joueurs-scores", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["joueurs-scores"] }
+      }
+    },
+    {
+      "name": "Statistiques globales",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/stats", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["stats"] }
+      }
+    },
+    {
+      "name": "Top 10 des parties",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/top10", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["top10"] }
+      }
+    },
+    {
+      "name": "Thèmes disponibles",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8000/themes", "protocol": "http", "host": ["localhost"], "port": "8000", "path": ["themes"] }
       }
     }
   ]

@@ -7,8 +7,6 @@ services:
       - memory_backend
     environment:
       - VITE_API_URL=http://backend:8000
-    volumes:
-      - ./frontend:/app
   memory_backend:
     build: ./backend
     ports:
