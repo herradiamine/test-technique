@@ -3,4 +3,6 @@ pydantic
 sqlalchemy
 uvicorn[standard]
 psycopg2-binary
+pytest
+httpx
  
