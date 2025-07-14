@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getJoueursScores, getStats } from '../utils/api';
 import '/styles/Top10.css';
@@ -13,13 +13,7 @@ function Top10() {
   const [sortBy, setSortBy] = useState('score'); // score, time, date
   const mainBtnRef = React.useRef(null);
 
-  useEffect(() => {
-    loadTop10();
-    loadStats();
-    setTimeout(() => { mainBtnRef.current?.focus(); }, 200);
-  }, [filter, sortBy, loadTop10, loadStats]);
-
-  const loadTop10 = async () => {
+  const loadTop10 = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -62,16 +56,22 @@ function Top10() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filter, sortBy]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const statsData = await getStats();
       setStats(statsData);
     } catch (err) {
       console.error('Erreur lors du chargement des statistiques:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadTop10();
+    loadStats();
+    setTimeout(() => { mainBtnRef.current?.focus(); }, 200);
+  }, [filter, sortBy, loadTop10, loadStats]);
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);

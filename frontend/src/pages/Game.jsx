@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '/styles/Game.css';
 
 function Game() {
   const location = useLocation();
   const navigate = useNavigate();
-  const gameParams = location.state?.gameParams || {};
+  const gameParams = useMemo(() => location.state?.gameParams || {}, [location.state]);
   // Extraire les paramètres AVANT les hooks qui en dépendent
   const { theme = 'animaux', gridSize = 4, playerCount = 1 } = gameParams;
 
@@ -41,7 +41,7 @@ function Game() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [initializeGame]);
 
   const initializeGame = () => {
     setIsLoading(true);
@@ -324,7 +324,7 @@ function Game() {
                     Gagnant: {
                       (() => {
                         const max = Math.max(...Object.values(scores));
-                        const gagnants = Object.entries(scores).filter(([_, v]) => v === max).map(([k]) => `Joueur ${k}`);
+                        const gagnants = Object.entries(scores).filter(([, v]) => v === max).map(([k]) => `Joueur ${k}`);
                         return gagnants.length > 1 ? 'Égalité' : gagnants[0];
                       })()
                     }

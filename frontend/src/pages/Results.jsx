@@ -109,7 +109,7 @@ function Results() {
         });
       }
       setSaveSuccess(true);
-    } catch (error) {
+    } catch {
       setErrorMsg('Erreur lors de la sauvegarde du score');
     } finally {
       setIsSaving(false);
