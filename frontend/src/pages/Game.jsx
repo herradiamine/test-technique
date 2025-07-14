@@ -17,6 +17,7 @@ function Game() {
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [moveCount, setMoveCount] = useState(0);
+  const [playerMoves, setPlayerMoves] = useState({ 1: 0, 2: 0 });
   const [isBlocked, setIsBlocked] = useState(false);
 
   // Paramètres du jeu
@@ -89,6 +90,11 @@ function Game() {
     if (newFlippedCards.length === 2) {
       setIsBlocked(true);
       setMoveCount(prev => prev + 1);
+      // Incrémenter le compteur du joueur actif
+      setPlayerMoves(prev => ({
+        ...prev,
+        [currentPlayer]: prev[currentPlayer] + 1
+      }));
       setTimeout(() => {
         checkForMatch(newFlippedCards);
         setIsBlocked(false);
@@ -231,7 +237,7 @@ function Game() {
               )}
             </div>
             <div className="modal-actions">
-              <button onClick={() => navigate('/results', { state: { gameData: { scores, gameTime, playerCount, theme, gridSize } } })} className="btn btn-primary">
+              <button onClick={() => navigate('/results', { state: { gameData: { scores, gameTime, playerCount, theme, gridSize, moveCount, playerMoves } } })} className="btn btn-primary">
                 Voir les résultats
               </button>
               <button onClick={handleNewGame} className="btn btn-secondary">

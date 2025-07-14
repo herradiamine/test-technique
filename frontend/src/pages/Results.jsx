@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { saveScore } from '../utils/api';
+import { saveScore, createPartie, createJoueur, createScoreJoueur, fetchJoueursByNom } from '../utils/api';
 import '/styles/Results.css';
 
 function Results() {
@@ -11,6 +11,7 @@ function Results() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [playerName, setPlayerName] = useState('');
+  const [playerName2, setPlayerName2] = useState('');
   const [showNameInput, setShowNameInput] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const mainBtnRef = React.useRef(null);
@@ -21,57 +22,90 @@ function Results() {
       navigate('/');
       return;
     }
-    if (gameData.playerCount === 1) {
-      setShowNameInput(true);
-    }
+    setShowNameInput(true); // Toujours afficher le formulaire pour sauvegarder le score
     // Focus auto sur le bouton principal
     setTimeout(() => { mainBtnRef.current?.focus(); }, 200);
   }, [gameData, navigate]);
 
   const handleSaveScore = async () => {
-    if (!playerName.trim() && gameData.playerCount === 1) {
+    if (playerCount === 1 && !playerName.trim()) {
       setErrorMsg('Veuillez entrer votre nom');
+      return;
+    }
+    if (playerCount === 2 && (!playerName.trim() || !playerName2.trim())) {
+      setErrorMsg('Veuillez entrer le nom des deux joueurs');
       return;
     }
     setErrorMsg('');
     setIsSaving(true);
     try {
-      // Mapping du thème pour l'API
+      // Mapping du thème pour l’API
       let apiTheme = theme;
       if (theme === 'animaux' || theme === 'fruits' || theme === 'emojis' || theme === 'chiffres') {
-        apiTheme = 'nombres'; // fallback pour l'API qui n'accepte que 'nombres' ou 'icônes'
+        apiTheme = 'nombres';
       } else if (theme === 'icônes') {
         apiTheme = 'icônes';
       }
-      // Mapping de la taille de grille
       const apiGrid = gridSize === 4 ? '4x4' : '6x6';
-      // Construction des joueurs
-      let joueurs = [];
-      if (playerCount === 1) {
-        joueurs = [{ nom: playerName, paires: scores[1] }];
-      } else {
-        joueurs = [
-          { nom: 'Joueur 1', paires: scores[1] },
-          { nom: 'Joueur 2', paires: scores[2] }
-        ];
+      // 1. Chercher ou créer les joueurs
+      async function getOrCreateJoueur(nom) {
+        const res = await fetchJoueursByNom(nom);
+        if (res.data && res.data.length > 0) {
+          return res.data[0].id;
+        } else {
+          const createRes = await createJoueur({ nom });
+          return createRes.data?.id || createRes.id;
+        }
       }
-      // Vainqueur
-      let vainqueur = playerName;
+      const joueur1Id = await getOrCreateJoueur(playerName);
+      let joueur2Id = null;
       if (playerCount === 2) {
-        if (scores[1] > scores[2]) vainqueur = 'Joueur 1';
-        else if (scores[2] > scores[1]) vainqueur = 'Joueur 2';
-        else vainqueur = 'Égalité';
+        joueur2Id = await getOrCreateJoueur(playerName2);
       }
-      const scoreData = {
-        joueurs,
+      // 2. Créer la partie
+      const partieRes = await createPartie({
+        taille_grille: apiGrid,
+        theme: apiTheme,
+        nb_joueurs: playerCount,
+        date_partie: new Date().toISOString(),
+        vainqueur_id: (playerCount === 2)
+          ? (scores[1] > scores[2] ? joueur1Id : scores[2] > scores[1] ? joueur2Id : null)
+          : joueur1Id
+      });
+      const partieId = partieRes.data?.id || partieRes.id;
+      // 3. Créer le score global
+      let vainqueurNom = playerName;
+      if (playerCount === 2) {
+        if (scores[1] > scores[2]) vainqueurNom = playerName;
+        else if (scores[2] > scores[1]) vainqueurNom = playerName2;
+        else vainqueurNom = 'Égalité';
+      }
+      const scoreRes = await saveScore({
         score_total: typeof moveCount === 'number' ? moveCount : 0,
-        vainqueur,
+        vainqueur: vainqueurNom,
         taille_grille: apiGrid,
         theme: apiTheme,
         nb_joueurs: playerCount,
         date_partie: new Date().toISOString()
-      };
-      await saveScore(scoreData);
+      });
+      const scoreId = scoreRes.data?.id || scoreRes.id;
+      // 4. Créer les scores individuels
+      await createScoreJoueur({
+        score_id: scoreId,
+        partie_id: partieId,
+        joueur_id: joueur1Id,
+        paires: scores[1],
+        // coups: playerMoves ? playerMoves[1] : moveCount // à ajouter si le champ existe
+      });
+      if (playerCount === 2) {
+        await createScoreJoueur({
+          score_id: scoreId,
+          partie_id: partieId,
+          joueur_id: joueur2Id,
+          paires: scores[2],
+          // coups: playerMoves ? playerMoves[2] : 0 // à ajouter si le champ existe
+        });
+      }
       setSaveSuccess(true);
     } catch (error) {
       setErrorMsg('Erreur lors de la sauvegarde du score');
@@ -104,7 +138,7 @@ function Results() {
     return null;
   }
 
-  const { scores, gameTime, playerCount, theme, gridSize, moveCount } = gameData;
+  const { scores, gameTime, playerCount, theme, gridSize, moveCount, playerMoves } = gameData;
   const totalPairs = (gridSize * gridSize) / 2;
   const winner = playerCount === 2 ? 
     (scores[1] > scores[2] ? 'Joueur 1' : scores[2] > scores[1] ? 'Joueur 2' : 'Égalité') : 
@@ -147,6 +181,9 @@ function Results() {
               <div className="score-display">
                 <span className="score-value">{scores[1]}</span>
                 <span className="score-label">paires trouvées sur {totalPairs}</span>
+                {playerMoves && (
+                  <span className="score-label">Coups utilisés : {playerMoves[1]}</span>
+                )}
               </div>
               <div className="completion-rate">
                 <div className="progress-bar">
@@ -163,11 +200,13 @@ function Results() {
               <div className={`player-score ${scores[1] > scores[2] ? 'winner' : ''}`} aria-label={`Joueur 1 : ${scores[1]} paires${scores[1] > scores[2] ? ', gagnant' : ''}`}>
                 <span className="player-name">Joueur 1</span>
                 <span className="score-value">{scores[1]} paires</span>
+                <span className="score-label">Coups : {playerMoves ? playerMoves[1] : '-'}</span>
                 {scores[1] > scores[2] && <span className="badge-winner" aria-label="Gagnant">🏆</span>}
               </div>
               <div className={`player-score ${scores[2] > scores[1] ? 'winner' : ''}`} aria-label={`Joueur 2 : ${scores[2]} paires${scores[2] > scores[1] ? ', gagnant' : ''}`}>
                 <span className="player-name">Joueur 2</span>
                 <span className="score-value">{scores[2]} paires</span>
+                <span className="score-label">Coups : {playerMoves ? playerMoves[2] : '-'}</span>
                 {scores[2] > scores[1] && <span className="badge-winner" aria-label="Gagnant">🏆</span>}
               </div>
               {winner && (
@@ -189,18 +228,41 @@ function Results() {
           <div className="save-score-section">
             <h3>Sauvegarder votre score</h3>
             <div className="name-input">
-              <input
-                type="text"
-                placeholder="Votre nom"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                maxLength={20}
-                className="name-field"
-                aria-label="Votre nom"
-              />
+              {playerCount === 1 ? (
+                <input
+                  type="text"
+                  placeholder="Votre nom"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  maxLength={20}
+                  className="name-field"
+                  aria-label="Votre nom"
+                />
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Nom du joueur 1"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    maxLength={20}
+                    className="name-field"
+                    aria-label="Nom du joueur 1"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nom du joueur 2"
+                    value={playerName2}
+                    onChange={(e) => setPlayerName2(e.target.value)}
+                    maxLength={20}
+                    className="name-field"
+                    aria-label="Nom du joueur 2"
+                  />
+                </>
+              )}
               <button 
                 onClick={handleSaveScore} 
-                disabled={isSaving || !playerName.trim()}
+                disabled={isSaving || (playerCount === 1 ? !playerName.trim() : (!playerName.trim() || !playerName2.trim()))}
                 className="btn btn-primary"
                 aria-label="Sauvegarder le score"
               >

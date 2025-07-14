@@ -20,9 +20,24 @@ def get_top10_scores(db: Session) -> List[models.Score]:
 
 # Statistiques globales (score moyen, nombre de participations)
 def get_stats(db: Session) -> dict:
-    score_moyen = db.query(func.avg(models.Score.score_total)).scalar() or 0
-    nb_participations = db.query(func.count(models.Score.id)).scalar() or 0
-    return {"score_moyen": float(score_moyen), "nombre_participations": nb_participations}
+    # Nombre total de parties (table partie)
+    total_games = db.query(models.Partie).count()
+    # Nombre de joueurs uniques (table joueur)
+    total_players = db.query(models.Joueur).count()
+    # Score moyen (moyenne des scores totaux de la table score)
+    average_score = db.query(func.avg(models.Score.score_total)).scalar() or 0
+    # Temps moyen (moyenne des coups par joueur si le champ existe)
+    # Ici, on suppose qu'il y a un champ 'coups' dans ScoreJoueur, sinon on met 0
+    coups_list = []
+    if hasattr(models.ScoreJoueur, 'coups'):
+        coups_list = [sj.coups for sj in db.query(models.ScoreJoueur).all() if sj.coups is not None]
+    average_time = sum(coups_list) / len(coups_list) if coups_list else 0
+    return {
+        "total_games": total_games,
+        "total_players": total_players,
+        "average_score": float(average_score),
+        "average_time": average_time
+    }
 
 # --- Version normalisée ---
 def create_joueur(db: Session, joueur: schemas.JoueurCreate):

@@ -16,6 +16,10 @@ export const createPartie = (data) => api.post('/parties', data);
 
 export const fetchJoueurs = (params) => api.get('/joueurs', { params });
 export const createJoueur = (data) => api.post('/joueurs', data);
+export const fetchJoueursByNom = (nom) => api.post('/joueurs', { nom });
+
+export const getJoueursScores = () => api.get('/joueurs-scores').then(response => response.data);
+export const createScoreJoueur = (data) => api.post('/score_joueur', data);
 
 // --- Fonctions utilitaires ---
 export const formatTime = (seconds) => {

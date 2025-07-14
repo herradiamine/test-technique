@@ -13,25 +13,18 @@ class TailleGrilleEnum(str, Enum):
     grille_6x6 = "6x6"
 
 # --- Version simple ---
-class JoueurScoreSimple(BaseModel):
-    nom: str
-    paires: int = Field(..., ge=0)
+# class JoueurScoreSimple(BaseModel):
+#     nom: str
+#     paires: int = Field(..., ge=0)
 
 class ScoreBase(BaseModel):
-    joueurs: List[JoueurScoreSimple]
+    # joueurs: List[JoueurScoreSimple]  # SUPPRIMÉ
     score_total: int = Field(..., ge=0)
     vainqueur: Optional[str]
     taille_grille: TailleGrilleEnum
     theme: ThemeEnum
     nb_joueurs: int = Field(..., ge=1, le=4)
     date_partie: Optional[datetime] = None
-
-    @validator('joueurs')
-    def check_nb_joueurs(cls, v, values):
-        nb = values.get('nb_joueurs')
-        if nb is not None and len(v) != nb:
-            raise ValueError('Le nombre de joueurs ne correspond pas à nb_joueurs')
-        return v
 
 class ScoreCreate(ScoreBase):
     pass
@@ -69,6 +62,7 @@ class PartieRead(PartieBase):
         orm_mode = True
 
 class ScoreJoueurBase(BaseModel):
+    score_id: Optional[int] = None  # NOUVEAU
     partie_id: int
     joueur_id: int
     paires: int = Field(..., ge=0)

@@ -12,7 +12,47 @@ def get_db():
     finally:
         db.close()
 
-# --- Version simple ---
+@router.get(
+    "/joueurs-scores",
+    summary="Scores individuels de tous les joueurs (structure relationnelle)",
+    description="Retourne la liste de tous les scores individuels (toutes parties confondues, version relationnelle)."
+)
+def get_joueurs_scores(db: Session = Depends(get_db)):
+    # On parcourt tous les scores individuels et on joint les infos nécessaires
+    results = (
+        db.query(
+            models.ScoreJoueur,
+            models.Joueur.nom.label("nom"),
+            models.Partie.date_partie,
+            models.Partie.taille_grille,
+            models.Partie.theme,
+            models.Partie.nb_joueurs,
+            models.Partie.vainqueur_id,
+            models.Score.score_total,
+            models.Score.vainqueur
+        )
+        .join(models.Joueur, models.ScoreJoueur.joueur_id == models.Joueur.id)
+        .join(models.Partie, models.ScoreJoueur.partie_id == models.Partie.id)
+        .join(models.Score, models.ScoreJoueur.score_id == models.Score.id)
+        .all()
+    )
+    joueurs_scores = []
+    for row in results:
+        score_joueur = row[0]
+        joueurs_scores.append({
+            "nom": row.nom,
+            "paires": score_joueur.paires,
+            # "coups": score_joueur.coups if hasattr(score_joueur, 'coups') else None,  # à ajouter si le champ existe
+            "date_partie": row.date_partie,
+            "taille_grille": row.taille_grille,
+            "theme": row.theme,
+            "nb_joueurs": row.nb_joueurs,
+            "vainqueur_id": row.vainqueur_id,
+            "score_total": row.score_total,
+            "vainqueur": row.vainqueur
+        })
+    return joueurs_scores
+
 @router.post(
     "/scores",
     response_model=schemas.ScoreRead,
@@ -90,4 +130,13 @@ def read_parties(
     limit: int = Query(10, le=100, description="Nombre maximum d'éléments à retourner (max 100)"),
     db: Session = Depends(get_db)
 ):
-    return crud.get_parties(db, skip=skip, limit=limit) 
+    return crud.get_parties(db, skip=skip, limit=limit)
+
+@router.post(
+    "/score_joueur",
+    response_model=schemas.ScoreJoueurRead,
+    summary="Créer un score individuel pour un joueur dans une partie",
+    description="Crée un score_joueur lié à une partie, un joueur et un score global."
+)
+def create_score_joueur(score_joueur: schemas.ScoreJoueurCreate, db: Session = Depends(get_db)):
+    return crud.create_score_joueur(db, score_joueur) 

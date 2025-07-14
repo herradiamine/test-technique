@@ -8,7 +8,6 @@ Base = declarative_base()
 class Score(Base):
     __tablename__ = "score"
     id = Column(Integer, primary_key=True)
-    joueurs = Column(JSON, nullable=False)
     score_total = Column(Integer, nullable=False)
     vainqueur = Column(String(100))
     taille_grille = Column(String(10), nullable=False)
@@ -38,8 +37,10 @@ class Partie(Base):
 class ScoreJoueur(Base):
     __tablename__ = "score_joueur"
     id = Column(Integer, primary_key=True)
+    score_id = Column(Integer, ForeignKey("score.id"), nullable=True)
     partie_id = Column(Integer, ForeignKey("partie.id"), nullable=False)
     joueur_id = Column(Integer, ForeignKey("joueur.id"), nullable=False)
     paires = Column(Integer, nullable=False)
     partie = relationship("Partie", back_populates="scores")
-    joueur = relationship("Joueur", back_populates="scores") 
+    joueur = relationship("Joueur", back_populates="scores")
+    score = relationship("Score") 

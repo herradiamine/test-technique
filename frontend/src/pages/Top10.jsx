@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTop10, getStats } from '../utils/api';
+import { getJoueursScores, getStats } from '../utils/api';
 import '/styles/Top10.css';
 
 function Top10() {
@@ -23,31 +23,39 @@ function Top10() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getTop10();
+      const data = await getJoueursScores();
       let filteredData = data;
 
       // Appliquer les filtres
       if (filter === 'solo') {
-        filteredData = data.filter(score => score.player_count === 1);
+        filteredData = data.filter(score => score.nb_joueurs === 1);
       } else if (filter === 'multiplayer') {
-        filteredData = data.filter(score => score.player_count === 2);
+        filteredData = data.filter(score => score.nb_joueurs > 1);
       }
 
-      // Appliquer le tri
-      filteredData.sort((a, b) => {
+      // Grouper les scores par partie (avant tri)
+      const grouped = groupScoresByPartie(filteredData);
+
+      // Trier les groupes selon le critère choisi
+      grouped.sort((a, b) => {
+        const partieA = a[0];
+        const partieB = b[0];
         switch (sortBy) {
           case 'score':
-            return b.score - a.score;
+            // Score total décroissant, puis coups croissant
+            return (partieB.paires - partieA.paires) || (partieA.coups - partieB.coups);
           case 'time':
-            return a.time_seconds - b.time_seconds;
+            // Coups croissant
+            return partieA.coups - partieB.coups;
           case 'date':
-            return new Date(b.created_at) - new Date(a.created_at);
+            // Date décroissante (plus récent d'abord)
+            return new Date(partieB.date_partie) - new Date(partieA.date_partie);
           default:
-            return b.score - a.score;
+            return (partieB.paires - partieA.paires) || (partieA.coups - partieB.coups);
         }
       });
 
-      setTopScores(filteredData.slice(0, 10));
+      setTopScores(grouped.slice(0, 10)); // On stocke directement les groupes (parties)
     } catch (err) {
       console.error('Erreur lors du chargement du Top 10:', err);
       setError('Erreur lors du chargement des données');
@@ -99,6 +107,16 @@ function Top10() {
     loadStats();
   };
 
+  const groupScoresByPartie = (scores) => {
+    const map = new Map();
+    scores.forEach(score => {
+      const key = `${score.date_partie}_${score.score_total}_${score.taille_grille}_${score.theme}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(score);
+    });
+    return Array.from(map.values());
+  };
+
   if (isLoading) {
     return (
       <div className="top10-container">
@@ -106,6 +124,9 @@ function Top10() {
       </div>
     );
   }
+
+  // groupedScores devient simplement topScores (déjà groupé et limité)
+  const groupedScores = topScores;
 
   return (
     <div className="top10-container">
@@ -187,7 +208,7 @@ function Top10() {
               Réessayer
             </button>
           </div>
-        ) : topScores.length === 0 ? (
+        ) : groupedScores.length === 0 ? (
           <div className="empty-state">
             <p>Aucun score enregistré pour le moment.</p>
             <button onClick={handleNewGame} className="btn btn-primary">
@@ -196,13 +217,14 @@ function Top10() {
           </div>
         ) : (
           <div className="leaderboard">
-            {topScores.map((score, index) => {
-              // Nom du joueur ou vainqueur
-              const playerNames = score.joueurs.map(j => j.nom).join(' & ');
-              const paires = score.joueurs.map(j => j.paires).join(' / ');
-              const isMulti = score.nb_joueurs > 1;
+            {groupedScores.map((duo, index) => {
+              const partie = duo[0];
+              const noms = duo.map(j => j.nom).join(' & ');
+              const paires = duo.map(j => j.paires !== undefined ? j.paires : '-').join(' / ');
+              const nbJoueurs = partie.nb_joueurs ? (partie.nb_joueurs === 1 ? 'Solo' : partie.nb_joueurs + ' Joueurs') : '1 Joueur';
+              const scoreTotal = (partie.score_total !== undefined && partie.score_total !== null && partie.score_total !== 0) ? partie.score_total : '-';
               return (
-                <div key={score.id} className={`leaderboard-item rank-${index + 1}`}>
+                <div key={index} className={`leaderboard-item rank-${index + 1}`}>
                   <div className="rank">
                     {index === 0 && '🥇'}
                     {index === 1 && '🥈'}
@@ -210,21 +232,19 @@ function Top10() {
                     {index > 2 && `#${index + 1}`}
                   </div>
                   <div className="player-info">
-                    <div className="player-name">{isMulti ? playerNames : playerNames || score.vainqueur}</div>
+                    <div className="player-name">{noms}</div>
                     <div className="game-details">
-                      <span className="theme-icon">{getThemeIcon(score.theme)}</span>
-                      <span className="grid-size">{score.taille_grille.replace('grille_', '').replace('_', 'x')}</span>
-                      <span className="player-count">
-                        {score.nb_joueurs === 1 ? 'Solo' : `${score.nb_joueurs} Joueurs`}
-                      </span>
+                      <span className="theme-icon">{getThemeIcon(partie.theme)}</span>
+                      <span className="grid-size">{partie.taille_grille ? partie.taille_grille.replace('grille_', '').replace('_', 'x') : '-'}</span>
+                      <span className="player-count">{nbJoueurs}</span>
                     </div>
                   </div>
                   <div className="score-info">
                     <div className="score-value">{paires} paires</div>
-                    <div className="score-time">{score.score_total} coups</div>
+                    <div className="score-time">Score total partie : {scoreTotal}</div>
                   </div>
                   <div className="score-date">
-                    {score.date_partie ? formatDate(score.date_partie) : '-'}
+                    {partie.date_partie ? formatDate(partie.date_partie) : '-'}
                   </div>
                 </div>
               );
