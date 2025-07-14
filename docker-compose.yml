@@ -16,7 +16,7 @@ services:
     depends_on:
       - memory_db
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/memory
+      - DATABASE_URL=postgresql://user:password@memory_db:5432/memory
     volumes:
       - ./backend:/app
   memory_db:
