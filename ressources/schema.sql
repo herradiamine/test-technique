@@ -1,5 +1,5 @@
--- Schéma SQL pour le jeu de mémoire (Memory)
--- Compatible PostgreSQL
+-- S'assurer que l'on est bien dans la base 'memory' (utile si exécuté manuellement)
+\c memory;
 
 -- =====================
 -- VERSION SIMPLE (table unique)
@@ -24,6 +24,12 @@ CREATE INDEX IF NOT EXISTS idx_date_partie ON score (date_partie);
 --   {"nom": "Alice", "paires": 5},
 --   {"nom": "Bob", "paires": 3}
 -- ]
+
+-- Jeu de données pour la version simple
+INSERT INTO score (joueurs, score_total, vainqueur, taille_grille, theme, nb_joueurs, date_partie) VALUES
+  ('[{"nom": "Alice", "paires": 6}, {"nom": "Bob", "paires": 2}]', 18, 'Alice', '4x4', 'icônes', 2, '2024-07-14 10:00:00'),
+  ('[{"nom": "Charlie", "paires": 8}]', 20, 'Charlie', '4x4', 'nombres', 1, '2024-07-13 15:30:00'),
+  ('[{"nom": "Alice", "paires": 5}, {"nom": "Bob", "paires": 3}, {"nom": "Diane", "paires": 6}]', 25, 'Diane', '6x6', 'icônes', 3, '2024-07-12 18:45:00');
 
 -- =====================
 -- VERSION NORMALISÉE (relationnelle)
@@ -56,4 +62,22 @@ CREATE TABLE IF NOT EXISTS score_joueur (
 -- Index pour les requêtes fréquentes
 CREATE INDEX IF NOT EXISTS idx_partie_date ON partie (date_partie);
 CREATE INDEX IF NOT EXISTS idx_score_joueur_partie ON score_joueur (partie_id);
-CREATE INDEX IF NOT EXISTS idx_score_joueur_joueur ON score_joueur (joueur_id); 
+CREATE INDEX IF NOT EXISTS idx_score_joueur_joueur ON score_joueur (joueur_id);
+
+-- Jeu de données pour la version normalisée
+INSERT INTO joueur (nom) VALUES ('Alice'), ('Bob'), ('Charlie'), ('Diane');
+
+-- Parties :
+INSERT INTO partie (taille_grille, theme, nb_joueurs, date_partie, vainqueur_id) VALUES
+  ('4x4', 'icônes', 2, '2024-07-14 10:00:00', 1), -- Alice vainqueur
+  ('4x4', 'nombres', 1, '2024-07-13 15:30:00', 3), -- Charlie vainqueur
+  ('6x6', 'icônes', 3, '2024-07-12 18:45:00', 4);  -- Diane vainqueur
+
+-- Scores individuels par partie
+INSERT INTO score_joueur (partie_id, joueur_id, paires) VALUES
+  (1, 1, 6), -- Alice, partie 1
+  (1, 2, 2), -- Bob, partie 1
+  (2, 3, 8), -- Charlie, partie 2
+  (3, 1, 5), -- Alice, partie 3
+  (3, 2, 3), -- Bob, partie 3
+  (3, 4, 6); -- Diane, partie 3 
