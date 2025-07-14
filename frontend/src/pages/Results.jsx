@@ -10,8 +10,7 @@ function Results() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [playerName, setPlayerName] = useState('');
-  const [playerName2, setPlayerName2] = useState('');
+  const [playerNames, setPlayerNames] = useState(["", "", "", ""]); // max 4 joueurs
   const [showNameInput, setShowNameInput] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const mainBtnRef = React.useRef(null);
@@ -25,15 +24,22 @@ function Results() {
     setShowNameInput(true); // Toujours afficher le formulaire pour sauvegarder le score
     // Focus auto sur le bouton principal
     setTimeout(() => { mainBtnRef.current?.focus(); }, 200);
+    // Sauvegarder les paramètres de la partie courante dans le localStorage
+    const paramsToStore = {
+      theme: gameData.theme,
+      gridSize: gameData.gridSize,
+      playerCount: gameData.playerCount
+    };
+    localStorage.setItem('lastGameParams', JSON.stringify(paramsToStore));
   }, [gameData, navigate]);
 
+  const handleNameChange = (idx, value) => {
+    setPlayerNames(prev => prev.map((n, i) => i === idx ? value : n));
+  };
+
   const handleSaveScore = async () => {
-    if (playerCount === 1 && !playerName.trim()) {
-      setErrorMsg('Veuillez entrer votre nom');
-      return;
-    }
-    if (playerCount === 2 && (!playerName.trim() || !playerName2.trim())) {
-      setErrorMsg('Veuillez entrer le nom des deux joueurs');
+    if (playerNames.slice(0, playerCount).some(n => !n.trim())) {
+      setErrorMsg('Veuillez entrer le nom de chaque joueur');
       return;
     }
     setErrorMsg('');
@@ -41,7 +47,7 @@ function Results() {
     try {
       // Mapping du thème pour l’API
       let apiTheme = theme;
-      if (theme === 'animaux' || theme === 'fruits' || theme === 'emojis' || theme === 'chiffres') {
+      if (["animaux", "fruits", "emojis", "chiffres"].includes(theme)) {
         apiTheme = 'nombres';
       } else if (theme === 'icônes') {
         apiTheme = 'icônes';
@@ -57,29 +63,33 @@ function Results() {
           return createRes.data?.id || createRes.id;
         }
       }
-      const joueur1Id = await getOrCreateJoueur(playerName);
-      let joueur2Id = null;
-      if (playerCount === 2) {
-        joueur2Id = await getOrCreateJoueur(playerName2);
+      const joueurIds = [];
+      for (let i = 0; i < playerCount; i++) {
+        joueurIds.push(await getOrCreateJoueur(playerNames[i]));
       }
       // 2. Créer la partie
+      let vainqueurIdx = 0;
+      let maxScore = -Infinity;
+      let egalite = false;
+      for (let i = 0; i < playerCount; i++) {
+        if (scores[i + 1] > maxScore) {
+          maxScore = scores[i + 1];
+          vainqueurIdx = i;
+          egalite = false;
+        } else if (scores[i + 1] === maxScore) {
+          egalite = true;
+        }
+      }
       const partieRes = await createPartie({
         taille_grille: apiGrid,
         theme: apiTheme,
         nb_joueurs: playerCount,
         date_partie: new Date().toISOString(),
-        vainqueur_id: (playerCount === 2)
-          ? (scores[1] > scores[2] ? joueur1Id : scores[2] > scores[1] ? joueur2Id : null)
-          : joueur1Id
+        vainqueur_id: egalite ? null : joueurIds[vainqueurIdx]
       });
       const partieId = partieRes.data?.id || partieRes.id;
       // 3. Créer le score global
-      let vainqueurNom = playerName;
-      if (playerCount === 2) {
-        if (scores[1] > scores[2]) vainqueurNom = playerName;
-        else if (scores[2] > scores[1]) vainqueurNom = playerName2;
-        else vainqueurNom = 'Égalité';
-      }
+      let vainqueurNom = egalite ? 'Égalité' : playerNames[vainqueurIdx];
       const scoreRes = await saveScore({
         score_total: typeof moveCount === 'number' ? moveCount : 0,
         vainqueur: vainqueurNom,
@@ -90,20 +100,12 @@ function Results() {
       });
       const scoreId = scoreRes.data?.id || scoreRes.id;
       // 4. Créer les scores individuels
-      await createScoreJoueur({
-        score_id: scoreId,
-        partie_id: partieId,
-        joueur_id: joueur1Id,
-        paires: scores[1],
-        // coups: playerMoves ? playerMoves[1] : moveCount // à ajouter si le champ existe
-      });
-      if (playerCount === 2) {
+      for (let i = 0; i < playerCount; i++) {
         await createScoreJoueur({
           score_id: scoreId,
           partie_id: partieId,
-          joueur_id: joueur2Id,
-          paires: scores[2],
-          // coups: playerMoves ? playerMoves[2] : 0 // à ajouter si le champ existe
+          joueur_id: joueurIds[i],
+          paires: scores[i + 1],
         });
       }
       setSaveSuccess(true);
@@ -132,6 +134,14 @@ function Results() {
 
   const handleViewTop10 = () => {
     navigate('/top10');
+  };
+
+  // Relance rapide avec les mêmes paramètres
+  const handleQuickRestart = () => {
+    const params = localStorage.getItem('lastGameParams');
+    if (params) {
+      navigate('/game', { state: { gameParams: JSON.parse(params) } });
+    }
   };
 
   if (!gameData) {
@@ -228,41 +238,21 @@ function Results() {
           <div className="save-score-section">
             <h3>Sauvegarder votre score</h3>
             <div className="name-input">
-              {playerCount === 1 ? (
+              {Array.from({ length: playerCount }).map((_, idx) => (
                 <input
+                  key={idx}
                   type="text"
-                  placeholder="Votre nom"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
+                  placeholder={`Nom du joueur ${idx + 1}`}
+                  value={playerNames[idx]}
+                  onChange={e => handleNameChange(idx, e.target.value)}
                   maxLength={20}
                   className="name-field"
-                  aria-label="Votre nom"
+                  aria-label={`Nom du joueur ${idx + 1}`}
                 />
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    placeholder="Nom du joueur 1"
-                    value={playerName}
-                    onChange={(e) => setPlayerName(e.target.value)}
-                    maxLength={20}
-                    className="name-field"
-                    aria-label="Nom du joueur 1"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Nom du joueur 2"
-                    value={playerName2}
-                    onChange={(e) => setPlayerName2(e.target.value)}
-                    maxLength={20}
-                    className="name-field"
-                    aria-label="Nom du joueur 2"
-                  />
-                </>
-              )}
+              ))}
               <button 
                 onClick={handleSaveScore} 
-                disabled={isSaving || (playerCount === 1 ? !playerName.trim() : (!playerName.trim() || !playerName2.trim()))}
+                disabled={isSaving || playerNames.slice(0, playerCount).some(n => !n.trim())}
                 className="btn btn-primary"
                 aria-label="Sauvegarder le score"
               >
@@ -279,6 +269,9 @@ function Results() {
 
         {/* Actions */}
         <div className="results-actions">
+          <button onClick={handleQuickRestart} className="btn btn-primary" aria-label="Relancer rapidement la même partie">
+            Relancer rapidement
+          </button>
           <button ref={mainBtnRef} onClick={handleNewGame} className="btn btn-primary" aria-label="Nouvelle Partie">
             Nouvelle Partie
           </button>

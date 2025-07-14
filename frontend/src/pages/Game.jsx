@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '/styles/Game.css';
 
@@ -6,22 +6,32 @@ function Game() {
   const location = useLocation();
   const navigate = useNavigate();
   const gameParams = location.state?.gameParams || {};
+  // Extraire les paramètres AVANT les hooks qui en dépendent
+  const { theme = 'animaux', gridSize = 4, playerCount = 1 } = gameParams;
 
   // État du jeu
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState(1);
-  const [scores, setScores] = useState({ 1: 0, 2: 0 });
+  const [scores, setScores] = useState(() => {
+    const obj = {};
+    for (let i = 1; i <= playerCount; i++) obj[i] = 0;
+    return obj;
+  });
   const [gameTime, setGameTime] = useState(0);
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [moveCount, setMoveCount] = useState(0);
-  const [playerMoves, setPlayerMoves] = useState({ 1: 0, 2: 0 });
+  const [playerMoves, setPlayerMoves] = useState(() => {
+    const obj = {};
+    for (let i = 1; i <= playerCount; i++) obj[i] = 0;
+    return obj;
+  });
   const [isBlocked, setIsBlocked] = useState(false);
-
-  // Paramètres du jeu
-  const { theme = 'animaux', gridSize = 4, playerCount = 1 } = gameParams;
+  const [showResume, setShowResume] = useState(false);
+  const [resumeData, setResumeData] = useState(null);
+  const hasRestored = useRef(false);
 
   // Initialisation du jeu
   useEffect(() => {
@@ -115,11 +125,10 @@ function Game() {
       ));
       
       // Mettre à jour le score
-      if (playerCount === 1) {
-        setScores(prev => ({ ...prev, 1: prev[1] + 1 }));
-      } else {
-        setScores(prev => ({ ...prev, [currentPlayer]: prev[currentPlayer] + 1 }));
-        setCurrentPlayer(prev => prev === 1 ? 2 : 1);
+      setScores(prev => ({ ...prev, [currentPlayer]: prev[currentPlayer] + 1 }));
+      // Passer au joueur suivant
+      if (playerCount > 1) {
+        setCurrentPlayer(prev => prev % playerCount + 1);
       }
     } else {
       // Pas de match, retourner les cartes
@@ -144,6 +153,68 @@ function Game() {
 
   const handleQuitGame = () => {
     navigate('/');
+  };
+
+  // Relance rapide avec les mêmes paramètres
+  const handleQuickRestart = () => {
+    const params = localStorage.getItem('lastGameParams');
+    if (params) {
+      navigate('/game', { state: { gameParams: JSON.parse(params) } });
+    }
+  };
+
+  // Sauvegarde automatique de l'état du jeu
+  useEffect(() => {
+    if (!isLoading && !isGameComplete) {
+      const stateToSave = {
+        cards,
+        flippedCards,
+        matchedPairs,
+        currentPlayer,
+        scores,
+        gameTime,
+        moveCount,
+        playerMoves,
+        playerCount,
+        theme,
+        gridSize,
+        gameParams
+      };
+      localStorage.setItem('currentGame', JSON.stringify(stateToSave));
+    }
+  }, [cards, flippedCards, matchedPairs, currentPlayer, scores, gameTime, moveCount, playerMoves, playerCount, theme, gridSize, isLoading, isGameComplete, gameParams]);
+
+  // Proposer de reprendre la partie si une sauvegarde existe
+  useEffect(() => {
+    if (hasRestored.current) return;
+    const saved = localStorage.getItem('currentGame');
+    if (saved && !isGameComplete) {
+      setShowResume(true);
+      setResumeData(JSON.parse(saved));
+    }
+  }, [isGameComplete]);
+
+  // Effacer la sauvegarde à la fin de la partie
+  useEffect(() => {
+    if (isGameComplete) {
+      localStorage.removeItem('currentGame');
+    }
+  }, [isGameComplete]);
+
+  // Handler pour restaurer la partie sauvegardée
+  const handleResume = () => {
+    if (resumeData) {
+      setCards(resumeData.cards);
+      setFlippedCards(resumeData.flippedCards);
+      setMatchedPairs(resumeData.matchedPairs);
+      setCurrentPlayer(resumeData.currentPlayer);
+      setScores(resumeData.scores);
+      setGameTime(resumeData.gameTime);
+      setMoveCount(resumeData.moveCount);
+      setPlayerMoves(resumeData.playerMoves);
+      hasRestored.current = true;
+      setShowResume(false);
+    }
   };
 
   // Gestion du focus clavier
@@ -178,13 +249,29 @@ function Game() {
               <span>Score: {scores[1]}</span>
             ) : (
               <div className="player-scores">
-                <span className={currentPlayer === 1 ? 'active' : ''}>Joueur 1: {scores[1]}</span>
-                <span className={currentPlayer === 2 ? 'active' : ''}>Joueur 2: {scores[2]}</span>
+                {Array.from({ length: playerCount }).map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={currentPlayer === idx + 1 ? 'active' : ''}
+                    style={{ fontWeight: currentPlayer === idx + 1 ? 'bold' : undefined, color: currentPlayer === idx + 1 ? '#ffb400' : undefined }}
+                  >
+                    Joueur {idx + 1}: {scores[idx + 1]}
+                    {currentPlayer === idx + 1 && ' ←'}
+                  </span>
+                ))}
               </div>
             )}
           </div>
         </div>
         <div className="game-actions">
+          <button onClick={handleQuickRestart} className="btn btn-primary" aria-label="Relancer rapidement la même partie">
+            Relancer rapidement
+          </button>
+          {showResume && (
+            <button onClick={handleResume} className="btn btn-primary" aria-label="Reprendre la partie">
+              Reprendre la partie
+            </button>
+          )}
           <button onClick={handleNewGame} className="btn btn-secondary">Nouvelle Partie</button>
           <button onClick={handleQuitGame} className="btn btn-danger">Quitter</button>
         </div>
@@ -230,9 +317,18 @@ function Game() {
                 <p>Score final: {scores[1]}</p>
               ) : (
                 <div>
-                  <p>Joueur 1: {scores[1]} points</p>
-                  <p>Joueur 2: {scores[2]} points</p>
-                  <p>Gagnant: {scores[1] > scores[2] ? 'Joueur 1' : scores[2] > scores[1] ? 'Joueur 2' : 'Égalité'}</p>
+                  {Array.from({ length: playerCount }).map((_, idx) => (
+                    <p key={idx}>Joueur {idx + 1}: {scores[idx + 1]} points</p>
+                  ))}
+                  <p>
+                    Gagnant: {
+                      (() => {
+                        const max = Math.max(...Object.values(scores));
+                        const gagnants = Object.entries(scores).filter(([_, v]) => v === max).map(([k]) => `Joueur ${k}`);
+                        return gagnants.length > 1 ? 'Égalité' : gagnants[0];
+                      })()
+                    }
+                  </p>
                 </div>
               )}
             </div>

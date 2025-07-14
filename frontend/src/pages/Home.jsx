@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import '/styles/Home.css';
 import { useNavigate } from 'react-router-dom';
+import PlayerCountSelector from '../components/PlayerCountSelector';
 
 function Home() {
   const [mode, setMode] = useState('solo');
   const [gridSize, setGridSize] = useState('grille_4x4');
   const [theme, setTheme] = useState('animaux');
+  const [playerCount, setPlayerCount] = useState(1);
   const navigate = useNavigate();
 
   const handleStart = () => {
     // Convertir les paramètres pour la page de jeu
     const gameParams = {
-      playerCount: mode === 'solo' ? 1 : 2,
+      playerCount: mode === 'multi' ? playerCount : 1,
       gridSize: gridSize === 'grille_4x4' ? 4 : 6,
       theme: theme
     };
@@ -38,6 +40,13 @@ function Home() {
           </button>
         </div>
       </div>
+
+      {mode === 'multi' && (
+        <div className="home-section">
+          <div className="home-section-title">Nombre de joueurs</div>
+          <PlayerCountSelector count={playerCount} onChange={setPlayerCount} />
+        </div>
+      )}
 
       <div className="home-section">
         <div className="home-section-title">Taille de la grille</div>
